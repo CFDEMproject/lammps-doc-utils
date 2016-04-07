@@ -21,7 +21,8 @@
 import os
 import re
 import argparse
-import lammps_filters
+#import lammps_filters
+import liggghts_filters
 from txt2html import Markup, Formatting, TxtParser, TxtConverter
 
 class RSTMarkup(Markup):
@@ -287,11 +288,11 @@ class Txt2Rst(TxtParser):
         self.register_filters()
 
     def register_filters(self):
-        self.paragraph_filters.append(lammps_filters.detect_and_format_notes)
-        self.document_filters.append(lammps_filters.filter_file_header_until_first_horizontal_line)
-        self.document_filters.append(lammps_filters.detect_and_add_command_to_index)
-        self.document_filters.append(lammps_filters.filter_multiple_horizontal_rules)
-        self.document_filters.append(lammps_filters.promote_doc_keywords)
+        self.paragraph_filters.append(liggghts_filters.detect_and_format_notes)
+        self.document_filters.append(liggghts_filters.filter_file_header_until_first_horizontal_line)
+        self.document_filters.append(liggghts_filters.detect_and_add_command_to_index)
+        self.document_filters.append(liggghts_filters.filter_multiple_horizontal_rules)
+        self.document_filters.append(liggghts_filters.promote_doc_keywords)
 
     def is_ignored_textblock_begin(self, line):
         return line.startswith('<!-- HTML_ONLY -->')
