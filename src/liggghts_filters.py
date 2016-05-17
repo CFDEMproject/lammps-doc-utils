@@ -50,12 +50,11 @@ def detect_and_format_notes(paragraph):
     return paragraph
 
 def detect_and_add_command_to_index(content):
-    command_pattern = re.compile(r"^(?P<command>.+) command\s*\n")
-    m = command_pattern.match(content)
+    command_pattern = re.compile(r"(?:.+`)?(?P<command>[\w/\s]+)(?:<.+>`)?\s+command\s+\=+\s+")
+    m = command_pattern.findall(content)
 
     if m:
-        cmd = m.group('command')
-        index = ".. index:: %s\n\n" % cmd
+        index = ".. index:: %s\n\n" % ', '.join(m)
         return index + content
 
     return content
