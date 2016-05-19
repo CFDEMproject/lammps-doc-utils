@@ -53,8 +53,16 @@ def detect_and_add_command_to_index(content):
     command_pattern = re.compile(r"(?:.+`)?(?P<command>[\w/\s]+)(?:<.+>`)?\s+command\s+\=+\s+")
     m = command_pattern.findall(content)
 
+    model_pattern = re.compile(r"(?:.+`)?(?P<model>[\w/\s]+)(?:<.+>`)?\s+model\s+\=+\s+")
+    n = model_pattern.findall(content)
+
     if m:
         index = ".. index:: %s\n\n" % ', '.join(m)
+        return index + content
+
+    # if no command, there may be a model
+    if n:
+        index = ".. index:: %s\n\n" % ', '.join(n)
         return index + content
 
     return content
