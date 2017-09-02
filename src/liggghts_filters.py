@@ -84,11 +84,18 @@ def promote_doc_keywords(content):
                                                '""""""\n')
     content = content.replace('**Examples:**\n', 'Examples\n'
                                                  '""""""""\n')
+    content = content.replace('**LIGGGHTS(R) vs. LAMMPS info:**\n', 'LIGGGHTS(R) vs. LAMMPS info\n'
+                                                                   '"""""""""""""""""""""""""""\n')
     content = content.replace('**Description:**\n', 'Description\n'
                                                     '"""""""""""\n')
     content = content.replace('**Restart, fix_modify, output, run start/stop, minimize info:**\n',
                               'Restart, fix_modify, output, run start/stop, minimize info\n'
                               '""""""""""""""""""""""""""""""""""""""""""""""""""""""""""\n')
+    content = content.replace('**Restart, fix_modify, run start/stop, minimize info:**\n',
+                              'Restart, fix_modify, run start/stop, minimize info\n'
+                              '""""""""""""""""""""""""""""""""""""""""""""""""""\n')
+    content = content.replace('**Output info:**\n', 'Output info\n'
+                                                    '"""""""""""\n')
     content = content.replace('**Restrictions:**', 'Restrictions\n'
                                                    '""""""""""""\n')
     content = content.replace('**Related commands:**\n', 'Related commands\n'
