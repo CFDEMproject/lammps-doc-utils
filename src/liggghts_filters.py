@@ -106,6 +106,8 @@ def promote_doc_keywords(content):
                                                     '"""""""""""\n')
     content = content.replace('**Restrictions:**', 'Restrictions\n'
                                                    '""""""""""""\n')
+    content = content.replace('**Dump_modify:**', 'Dump_modify\n'
+                                                  '"""""""""""\n')
     content = content.replace('**Related commands:**\n', 'Related commands\n'
                                                          '""""""""""""""""\n')
     content = content.replace('**Default:**\n', 'Default\n'
