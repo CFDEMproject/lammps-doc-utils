@@ -18,7 +18,7 @@
 import io
 import tempfile
 import unittest
-import txt2rst
+from lammpsdoc import txt2rst
 
 class TestBasicFormatting(unittest.TestCase):
     def setUp(self):
@@ -77,11 +77,45 @@ class TestMarkup(unittest.TestCase):
         self.assertEqual("**bold** = [bold]\n"
                          "*italic* = {italic}\n", s)
 
+    def test_escape_rst_characters(self):
+        s = self.markup.convert("[*bold] and {italic*}")
+        self.assertEqual("**\*bold** and *italic\**", s)
+
+    def test_escape_rst_characters(self):
+      s = self.markup.convert("[|bold|] and {|italic|}")
+      self.assertEqual("**\|bold\|** and *\|italic\|*", s)
+
+    def test_escape_hat_character(self):
+        s = self.markup.convert("x^2")
+        self.assertEqual("x\^2", s)
+
+    def test_escape_underscore(self):
+        s = self.markup.convert("x_")
+        self.assertEqual("x\_", s)
+
+    def test_paragraph_with_italic(self):
+        self.assertEqual("A sentence with a *italic* word", self.markup.convert("A sentence with a {italic} word"))
+
+    def test_paragraph_with_partial_italic(self):
+        self.assertEqual("A sentence with a partial *italic*\ normal word",
+                         self.markup.convert("A sentence with a partial {italic}normal word"))
+
+    def test_paragraph_with_partial_bold(self):
+        self.assertEqual("A sentence with a partial **bold**\ normal word",
+                         self.markup.convert("A sentence with a partial [bold]normal word"))
+
+    def test_paragraph_with_mixed_formats(self):
+        self.assertEqual("A sentence with a partial normal\ **bold**\ *italic*\ normal word",
+                         self.markup.convert("A sentence with a partial normal[bold]{italic}normal word"))
+
     def test_link_markup(self):
         self.assertEqual("`Text <link>`_", self.markup.convert('"Text"_link'))
 
     def test_document_cross_reference_link(self):
         self.assertEqual(":doc:`Text <link>`", self.markup.convert('"Text"_link.html'))
+
+    def test_user_atc_link(self):
+        self.assertEqual("`Text <USER/atc/link.html>`_", self.markup.convert('"Text"_USER/atc/link.html'))
 
     def test_external_link(self):
         self.assertEqual("`Text <http://site/index.html>`_", self.markup.convert('"Text"_http://site/index.html'))
@@ -125,15 +159,22 @@ class TestFormatting(unittest.TestCase):
 
     def test_preformat_formatting(self):
         s = self.txt2rst.convert("Hello :pre\n")
-        self.assertEqual(".. parsed-literal::\n\n"
+        self.assertEqual("\n.. parsed-literal::\n\n"
                          "   Hello\n\n", s)
 
     def test_preformat_formatting_with_indentation(self):
         s = self.txt2rst.convert("    Hello\n"
                                  "    World :pre\n")
-        self.assertEqual(".. parsed-literal::\n\n"
+        self.assertEqual("\n.. parsed-literal::\n\n"
                          "       Hello\n"
                          "       World\n\n", s)
+
+    def test_preformat_formatting_with_underscore(self):
+        s = self.txt2rst.convert("if MPI.COMM_WORLD.rank == 0:\n"
+                                 "    print(\"Potential energy: \", L.eval(\"pe\")) :pre\n")
+        self.assertEqual("\n.. parsed-literal::\n\n"
+                         "   if MPI.COMM_WORLD.rank == 0:\n"
+                         "       print(\"Potential energy: \", L.eval(\"pe\"))\n\n", s)
 
     def test_header_formatting(self):
         s = self.txt2rst.convert("Level 1 :h1\n"
@@ -165,6 +206,16 @@ class TestFormatting(unittest.TestCase):
         s = self.txt2rst.convert("1.1 Level :h1\n")
         self.assertEqual("Level\n"
                          "#####\n\n", s)
+
+    def test_filter_header_numbers_deep(self):
+        s = self.txt2rst.convert("1.1.1.1.1 Level :h1\n")
+        self.assertEqual("Level\n"
+                         "#####\n\n", s)
+
+    def test_no_filter_date(self):
+        s = self.txt2rst.convert("9 Sept 2016 version :h1\n")
+        self.assertEqual("9 Sept 2016 version\n"
+                         "###################\n\n", s)
 
     def test_all_breaks(self):
         s = self.txt2rst.convert("one\n"
@@ -204,7 +255,15 @@ class TestListFormatting(unittest.TestCase):
                                  "three :ule,l\n")
         self.assertEqual("* one\n"
                          "* two\n"
-                         "* three\n", s)
+                         "* three\n\n", s)
+
+    def test_elementwise_unordered_list_reverse(self):
+        s = self.txt2rst.convert("one :ulb,l\n"
+                                 "two :l\n"
+                                 "three :l,ule\n")
+        self.assertEqual("* one\n"
+                         "* two\n"
+                         "* three\n\n", s)
 
     def test_multi_line_unordered_list_elements(self):
         s = self.txt2rst.convert("one :ulb,l\n"
@@ -214,7 +273,7 @@ class TestListFormatting(unittest.TestCase):
         self.assertEqual("* one\n"
                          "* two\n"
                          "  words\n"
-                         "* three\n", s)
+                         "* three\n\n", s)
 
     def test_ordered_list(self):
         s = self.txt2rst.convert("one\n"
@@ -230,7 +289,7 @@ class TestListFormatting(unittest.TestCase):
                                  "three :ole,l\n")
         self.assertEqual("#. one\n"
                          "#. two\n"
-                         "#. three\n", s)
+                         "#. three\n\n", s)
 
     def test_multi_line_ordered_list_elements(self):
         s = self.txt2rst.convert("one :olb,l\n"
@@ -240,7 +299,35 @@ class TestListFormatting(unittest.TestCase):
         self.assertEqual("#. one\n"
                          "#. two\n"
                          "   words\n"
-                         "#. three\n", s)
+                         "#. three\n\n", s)
+
+    def test_paragraphs_ordered_list(self):
+        s = self.txt2rst.convert("first\n"
+                                 "paragraph :olb,l\n"
+                                 "second\n"
+                                 "paragraph :l\n"
+                                 "third\n"
+                                 "paragraph :ole,l\n")
+        self.assertEqual("#. first\n"
+                         "   paragraph\n"
+                         "#. second\n"
+                         "   paragraph\n"
+                         "#. third\n"
+                         "   paragraph\n\n", s)
+
+    def test_paragraphs_unordered_list(self):
+        s = self.txt2rst.convert("first\n"
+                                 "paragraph :ulb,l\n"
+                                 "second\n"
+                                 "paragraph :l\n"
+                                 "third\n"
+                                 "paragraph :ule,l\n")
+        self.assertEqual("* first\n"
+                         "  paragraph\n"
+                         "* second\n"
+                         "  paragraph\n"
+                         "* third\n"
+                         "  paragraph\n\n", s)
 
     def test_definition_list(self):
         s = self.txt2rst.convert("A\n"
@@ -253,6 +340,39 @@ class TestListFormatting(unittest.TestCase):
                          "B\n"
                          "   second\n"
                          "\n\n", s)
+
+    def test_multi_paragraph_lists(self):
+        s = self.txt2rst.convert("first\n"
+                                 "paragraph of first bullet :ulb,l\n\n"
+                                 "second paragraph of first bullet\n\n"
+                                 "first paragraph of second bullet :l\n\n"
+                                 ":ule\n")
+        self.assertEqual("* first\n"
+                         "  paragraph of first bullet\n"
+                         "\n"
+                         "  second paragraph of first bullet\n"
+                         "\n"
+                         "* first paragraph of second bullet\n\n\n", s)
+
+    def test_multi_paragraph_lists_with_listing(self):
+        s = self.txt2rst.convert("first\n"
+                                 "paragraph of first bullet :ulb,l\n\n"
+                                 "code1 :pre\n"
+                                 "or\n"
+                                 "\n"
+                                 "first paragraph of second bullet :l\n\n"
+                                 ":ule\n")
+        self.assertEqual("* first\n"
+                         "  paragraph of first bullet\n"
+                         "  \n"
+                         "  .. parsed-literal::\n"
+                         "  \n"
+                         "     code1\n"
+                         "\n\n"
+                         "  or\n"
+                         "\n"
+                         "* first paragraph of second bullet\n\n\n", s)
+
 
 class TestSpecialCommands(unittest.TestCase):
     def setUp(self):
@@ -303,6 +423,11 @@ class TestSpecialCommands(unittest.TestCase):
                          "\n"
                          "one \n\n"
                          "a :ref:`link <name>` to above\n\n", s)
+
+    def test_external_anchor_link(self):
+        s = self.txt2rst.convert('some text "containing a\n'
+                                 'link"_http://lammps.sandia.gov/movies.html#granregion with an anchor')
+        self.assertEqual('some text `containing a link <http://lammps.sandia.gov/movies.html#granregion>`_ with an anchor\n\n', s)
 
     def test_define_link_alias(self):
         s = self.txt2rst.convert("one :link(alias,value)\n"
@@ -359,6 +484,16 @@ class TestMathMarkup(unittest.TestCase):
                          "   \\frac{s_{ij} r_{ij} }{2} \\right)\n"
                          "   \\exp \\left( - s_{ij} r_{ij} \\right) \\end{equation}\n\n", s)
 
+    def test_detect_latex_equation_with_mult(self):
+        s = self.txt2rst.convert("\\begin\\{equation\\} a = b * c \\end\\{equation\\}\n")
+        self.assertEqual("\n.. math::\n\n"
+                         "   \\begin{equation} a = b * c \\end{equation}\n\n", s)
+
+    def test_detect_latex_equation_with_pow(self):
+        s = self.txt2rst.convert("\\begin\\{equation\\} a = b^c \\end\\{equation\\}\n")
+        self.assertEqual("\n.. math::\n\n"
+                         "   \\begin{equation} a = b^c \\end{equation}\n\n", s)
+
     def test_detect_inline_latex_equation(self):
         s = self.txt2rst.convert("Masses: \\begin\\{equation\\} M' = M + m \\end\\{equation\\}\n"
                                  "\\begin\\{equation\\} m' = \\frac \\{M\\, m \\} \\{M'\\} \\end\\{equation\\}\n")
@@ -373,6 +508,9 @@ class TestMathMarkup(unittest.TestCase):
 
     def test_detect_inline_math(self):
         self.assertEqual(":math:`x^2`", self.markup.convert("\\( x^2 \\)"))
+
+    def test_detect_inline_math_mult(self):
+        self.assertEqual(":math:`x * 2`", self.markup.convert("\\( x * 2 \\)"))
 
     def test_detect_multiline_inline_math(self):
         line = "\\(\\sqrt \\{ \\frac \\{2\, k_B \\mathtt\\{Tcom\\}\, m'\\}\n" \

@@ -2,6 +2,10 @@
 
 [![Build Status](https://travis-ci.org/rbberger/lammps-doc-utils.svg?branch=master)](https://travis-ci.org/rbberger/lammps-doc-utils)
 
+[![Coverage Status](https://coveralls.io/repos/github/rbberger/lammps-doc-utils/badge.svg?branch=master)](https://coveralls.io/github/rbberger/lammps-doc-utils?branch=master)
+
+[![codecov](https://codecov.io/gh/rbberger/lammps-doc-utils/branch/master/graph/badge.svg)](https://codecov.io/gh/rbberger/lammps-doc-utils)
+
 This repository contains a set of utilities to convert existing LAMMPS
 documentation text files into ReStructured Text. These files can then be used
 to generate documentation using Sphinx (www.sphinx-doc.org).
@@ -45,10 +49,10 @@ extensions = [
 ## Installation
 
 1. Clone this repository
-2. Add the `bin` folder to your `PATH` environment variable
+2. Install using setup.py
 
    ```bash
-   export PATH=/your/install/directory/bin:$PATH
+   python setup.py install
    ```
 
 ## Usage
