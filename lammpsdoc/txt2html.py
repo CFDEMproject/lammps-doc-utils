@@ -530,6 +530,7 @@ class TxtParser(object):
         last_word = self.last_word(paragraph)
         format_str = paragraph[paragraph.rfind(last_word):]
         format_str = format_str.strip('\n')
+        paragraph = paragraph.replace(format_str, "")
         commands = format_str[1:].strip()
         command_regex = r"(?P<command>[^\(,]+(\([^\)]+\))?),?"
         command_pattern = re.compile(command_regex)
